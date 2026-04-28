@@ -15,4 +15,9 @@ dependencies = [
     "python-dotenv",
     "tqdm",
     "python-dotenv",
+    "datasets>=4.8.5",
+    "jinja2>=3.1.6",
+    "langchain-core>=1.3.2",
+    "pylint>=4.0.5",
+    "langsmith>=0.7.37",
 ]
