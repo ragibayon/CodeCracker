@@ -25,6 +25,19 @@ CodeCracker is a security-focused Python code generation runner built around a L
 uv sync
 ```
 
+`main.py` calls `load_dotenv()`, so you can keep local secrets in a `.env` file.
+
+Example `.env`:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional LangSmith tracing
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=your_langsmith_api_key_here
+LANGSMITH_PROJECT=codecracker
+```
+
 ## Configure
 
 The main runtime settings live in [main.py](/Users/ragibayon/Code/CodeCracker/main.py):
