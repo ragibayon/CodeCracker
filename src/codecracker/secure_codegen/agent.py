@@ -5,8 +5,8 @@ import re
 from typing import Any
 
 from langchain.agents import create_agent
-from langchain.agents.structured_output import ToolStrategy
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 from langgraph.errors import GraphRecursionError
 
 from codecracker.callbacks.metrics import LLMRunMetrics
@@ -109,6 +109,21 @@ def _last_ai_message(raw_agent_output: dict[str, Any]) -> Any:
     return None
 
 
+def _structured_response_to_payload(structured_response: Any) -> dict[str, Any]:
+    if structured_response is None:
+        return {}
+
+    if hasattr(structured_response, "model_dump"):
+        payload = structured_response.model_dump()
+        if isinstance(payload, dict):
+            return payload
+
+    if isinstance(structured_response, dict):
+        return structured_response
+
+    return {"code": getattr(structured_response, "code", str(structured_response))}
+
+
 class CodeGenAgent:
     def __init__(
         self,
@@ -117,25 +132,48 @@ class CodeGenAgent:
         seed: int | None = None,
         max_security_calls: int = 3,
         recursion_limit: int = 30,
+        provider: str = "ollama",
+        timeout: int | None = None,
+        max_retries: int = 2,
     ) -> None:
         self.model = model
+        self.provider = provider
         self.max_security_calls = max_security_calls
         self.recursion_limit = recursion_limit
 
-        llm_kwargs: dict[str, Any] = {
-            "model": model,
-            "temperature": temperature,
-            "disable_streaming": True,
-        }
-        if seed is not None:
-            llm_kwargs["seed"] = seed
+        provider = provider.lower().strip()
 
-        self.llm = ChatOllama(**llm_kwargs)
-        self.structured_llm = self.llm.with_structured_output(CodeGenerationOutput)
+        if provider == "openai":
+            llm_kwargs: dict[str, Any] = {
+                "model": model,
+                "temperature": temperature,
+                "max_retries": max_retries,
+            }
+            if timeout is not None:
+                llm_kwargs["timeout"] = timeout
+            if seed is not None:
+                llm_kwargs["seed"] = seed
+
+            self.llm = ChatOpenAI(**llm_kwargs)
+
+        elif provider == "ollama":
+            llm_kwargs = {
+                "model": model,
+                "temperature": temperature,
+                "disable_streaming": True,
+            }
+            if seed is not None:
+                llm_kwargs["seed"] = seed
+
+            self.llm = ChatOllama(**llm_kwargs)
+
+        else:
+            raise ValueError(
+                f"Unsupported provider: {provider!r}. " "Expected 'ollama' or 'openai'."
+            )
 
         system_prompt = render_prompt(
             "system_prompt.j2",
-            skill_memory="",
             max_security_calls=max_security_calls,
         )
 
@@ -147,7 +185,7 @@ class CodeGenAgent:
                 run_security_checks_tool,
             ],
             system_prompt=system_prompt,
-            response_format=ToolStrategy(CodeGenerationOutput),
+            response_format=CodeGenerationOutput,
         )
 
     def run_loop(
@@ -192,6 +230,7 @@ class CodeGenAgent:
                 "tool_rounds": 0,
                 "final_code": "",
                 "structured_response": None,
+                "structured_response_source": None,
                 "raw_agent_output": {},
                 "llm_metrics": metrics.as_dict(),
                 "error_type": type(exc).__name__,
@@ -203,6 +242,7 @@ class CodeGenAgent:
                         "passed": False,
                         "code": "",
                         "structured_response": None,
+                        "structured_response_source": None,
                         "raw_agent_output": {},
                         "llm_metrics": metrics.as_dict(),
                         "error_type": type(exc).__name__,
@@ -224,7 +264,8 @@ class CodeGenAgent:
                 "ai_turns": 1,
                 "tool_rounds": 0,
                 "final_code": code,
-                "structured_response": None,
+                "structured_response": {"code": code},
+                "structured_response_source": "fallback_plain_llm_parse",
                 "raw_agent_output": {},
                 "llm_metrics": fallback_metrics.as_dict(),
                 "error_type": type(exc).__name__,
@@ -235,7 +276,8 @@ class CodeGenAgent:
                         "stage": "fallback_plain_llm",
                         "passed": False,
                         "code": code,
-                        "structured_response": None,
+                        "structured_response": {"code": code},
+                        "structured_response_source": "fallback_plain_llm_parse",
                         "raw_agent_output": {},
                         "llm_metrics": fallback_metrics.as_dict(),
                         "error_type": type(exc).__name__,
@@ -245,9 +287,13 @@ class CodeGenAgent:
             }
 
         structured_response = raw_agent_output.get("structured_response")
+
         if structured_response is not None:
-            code = structured_response.code.strip()
-            structured_response_payload = structured_response.model_dump()
+            structured_response_payload = _structured_response_to_payload(
+                structured_response
+            )
+            code = str(structured_response_payload.get("code", "")).strip()
+            structured_response_source = "langchain_create_agent_structured_response"
         else:
             last_ai_message = _last_ai_message(raw_agent_output)
             code = _extract_code_from_text(
@@ -256,6 +302,7 @@ class CodeGenAgent:
                 else ""
             )
             structured_response_payload = {"code": code}
+            structured_response_source = "manual_last_ai_message_parse"
 
         round_counts = _count_agent_rounds(raw_agent_output)
 
@@ -266,6 +313,7 @@ class CodeGenAgent:
             "tool_rounds": round_counts["tool_rounds"],
             "final_code": code,
             "structured_response": structured_response_payload,
+            "structured_response_source": structured_response_source,
             "raw_agent_output": raw_agent_output,
             "llm_metrics": metrics.as_dict(),
             "attempts": [
@@ -275,6 +323,7 @@ class CodeGenAgent:
                     "passed": True,
                     "code": code,
                     "structured_response": structured_response_payload,
+                    "structured_response_source": structured_response_source,
                     "ai_turns": round_counts["ai_turns"],
                     "tool_rounds": round_counts["tool_rounds"],
                     "raw_agent_output": raw_agent_output,

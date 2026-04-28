@@ -684,6 +684,52 @@ Key files:
 
 ## Discussion
 
+### Results
+
+• Using the effective evaluated set after removing the 16 zero-tool bypass cases:
+
+- Total evaluated runs: 105
+
+  Progression:
+
+- After 1st security call: 57/105 passed, 48/105 failed
+- Ratio: 54.3% passed, 45.7% failed
+- After 2nd security call: 81/105 passed cumulatively, 24/105 failed
+- Ratio: 77.1% passed, 22.9% failed
+- After 3rd security call: 91/105 passed cumulatively, 14/105 failed
+- Ratio: 86.7% passed, 13.3% failed
+
+  Breakdown of the failed side:
+
+- 45 failed the 1st security call
+- 21 were still unresolved after the 2nd security call
+- 11 were still unresolved after the 3rd security call
+- Plus 3 runs failed before any security-tool call, so they remain in the failed count throughout
+
+  Compact summary:
+
+- 54.3% passed by the 1st security call
+- 77.1% passed by the 2nd security call
+- 86.7% passed by the 3rd security call
+
+• Using the effective evaluated set of 105 runs after removing the 16 zero-tool bypass cases:
+
+- After 1st security call: 48/105 failed
+- Fail rate: 45.7%
+- After 2nd security call: 24/105 failed
+- Fail rate: 22.9%
+- After 3rd security call: 14/105 failed
+- Fail rate: 13.3%
+
+  Failure reduction over iterations:
+
+- 1st to 2nd call: 48 -> 24
+- Fail rate drop: 45.7% -> 22.9%
+- 2nd to 3rd call: 24 -> 14
+- Fail rate drop: 22.9% -> 13.3%
+- Overall from 1st to 3rd call: 48 -> 14
+- Fail rate drop: 45.7% -> 13.3%
+
 ### Context Engineering
 
 This project intentionally separates:

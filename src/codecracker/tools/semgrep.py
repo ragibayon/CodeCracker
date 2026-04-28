@@ -12,7 +12,7 @@ from rich.panel import Panel
 
 console = Console()
 
-SEMGREP_TIMEOUT_SECONDS = 30
+SEMGREP_TIMEOUT_SECONDS = 60
 
 
 # -----------------------------
@@ -171,7 +171,9 @@ def run(user_input):
         f"Return code: {report.get('_semgrep_returncode')}\n"
         f"Errors: {report.get('errors')}"
     )
-    console.print(Panel.fit(header_text, title="Semgrep Full Output", border_style="cyan"))
+    console.print(
+        Panel.fit(header_text, title="Semgrep Full Output", border_style="cyan")
+    )
 
     summary_text = (
         f"Num issues: {summary['num_issues']}\n"

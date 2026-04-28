@@ -106,15 +106,18 @@ def _build_run_record(
 ) -> dict[str, Any]:
     raw_agent_output = result.get("raw_agent_output") or {}
     llm_metrics = result.get("llm_metrics") or {}
+
     tool_calls = _extract_tool_calls(raw_agent_output)
     tool_results = _extract_tool_results(raw_agent_output)
     tool_call_counts = Counter(
         call.get("name") for call in tool_calls if call.get("name")
     )
+
     logged_tool_results = []
     for tool_result in tool_results:
         content = tool_result.get("content")
         artifact = tool_result.get("artifact")
+
         if isinstance(artifact, dict) and "llm_context" in artifact:
             logged_tool_results.append(
                 {
@@ -155,6 +158,7 @@ def _build_run_record(
             "pass_at": result.get("pass_at"),
             "final_code": result.get("final_code"),
             "structured_response": result.get("structured_response"),
+            "structured_response_source": result.get("structured_response_source"),
         },
         "metrics": {
             "ai_turns": result.get("ai_turns"),
@@ -222,9 +226,15 @@ def start_run_loader(message: str = "Running ReAct agent") -> Status:
 def print_run_result(result: dict[str, Any]) -> None:
     raw_agent_output = result.get("raw_agent_output") or {}
     tool_results = _extract_tool_results(raw_agent_output)
+
     summary = f"Passed: {result['passed']}\nPass at: {result['pass_at']}"
+
+    if result.get("structured_response_source"):
+        summary += f"\nStructured source: {result['structured_response_source']}"
+
     if result.get("log_dir"):
         summary += f"\nLog Dir: {result['log_dir']}"
+
     console.print(Panel.fit(summary, title="Result", border_style="cyan"))
 
     console.print(
@@ -273,13 +283,19 @@ def print_run_result(result: dict[str, Any]) -> None:
 
 def print_run_error(result: dict[str, Any]) -> None:
     summary = "Passed: False\nPass at: None"
+
+    if result.get("structured_response_source"):
+        summary += f"\nStructured source: {result['structured_response_source']}"
+
     if result.get("log_dir"):
         summary += f"\nLog Dir: {result['log_dir']}"
+
     console.print(Panel.fit(summary, title="Result", border_style="red"))
 
     error_payload = {
         "error_type": result.get("error_type"),
         "error_message": result.get("error_message"),
+        "structured_response_source": result.get("structured_response_source"),
     }
     console.print(
         Panel(

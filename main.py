@@ -92,16 +92,18 @@ def run_sample(
 def main() -> None:
     load_dotenv()
 
-    model = "gpt-oss:latest"
+    model = "gpt-4o"
+    provider = "openai"
     temperature = 0.0
     seed: int | None = 42
     max_security_calls = 3
-    recursion_limit = 30
+    recursion_limit = 12
 
     dataset_path = Path("data/securityeval/dataset.jsonl")
     sample_index: int | None = None
 
     model_parameters = {
+        "provider": provider,
         "temperature": temperature,
         "seed": seed,
         "max_security_calls": max_security_calls,
@@ -115,6 +117,7 @@ def main() -> None:
 
     agent = CodeGenAgent(
         model=model,
+        provider=provider,
         temperature=temperature,
         seed=seed,
         max_security_calls=max_security_calls,
