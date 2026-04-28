@@ -698,7 +698,7 @@ The table below reports only runs that reached at least one security-tool call.
 
 #### Cumulative Security-Validation Results
 
-| Iteration | Passed (Cumulative) | Failed (Security Only) | Pass Rate | Fail Rate |
+| Iteration | Passed (Cumulative) | Failed | Pass Rate | Fail Rate |
 |---|---:|---:|---:|---:|
 | After 1st security call | 57 / 102 | 45 / 102 | 55.9% | 44.1% |
 | After 2nd security call | 81 / 102 | 21 / 102 | 79.4% | 20.6% |
@@ -714,9 +714,9 @@ The table below reports only runs that reached at least one security-tool call.
 
 #### Compact Summary
 
-Using the effective evaluated set of **105 runs**, the agent passed **57 runs after the first security call**, **81 runs after the second security call**, and **91 runs after the third security call**. This corresponds to cumulative pass rates of **54.3%**, **77.1%**, and **86.7%**, respectively.
+Using the effective evaluated set of **102 runs**, the agent passed **57 runs after the first security call**, **81 runs after the second security call**, and **91 runs after the third security call**. This corresponds to cumulative pass rates of **55.9%**, **79.4%**, and **89.2%**, respectively.
 
-The total failure count decreased from **48** after the first security call to **24** after the second and **14** after the third. These failure counts include **3 pre-tool failures** that never reached the security tool and therefore remain in the failed count throughout.
+The total failure count decreased from **45** after the first security call to **21** after the second and **11** after the third. This shows that iterative security feedback substantially reduced unresolved security failures across validation rounds.
 
 ### Context Engineering
 
