@@ -686,49 +686,37 @@ Key files:
 
 ### Results
 
-• Using the effective evaluated set after removing the 16 zero-tool bypass cases:
+#### Effective Evaluation Set
 
-- Total evaluated runs: 105
+The dataset contains **122 prompts**. Code was generated for **121 prompts**. Among these, **16 runs bypassed the security tool entirely** and **3 runs failed before any security-tool call**. These 19 runs are excluded from the security-iteration analysis because they do not provide valid security-tool iteration data.
 
-  Progression:
+Therefore:
 
-- After 1st security call: 57/105 passed, 48/105 failed
-- Ratio: 54.3% passed, 45.7% failed
-- After 2nd security call: 81/105 passed cumulatively, 24/105 failed
-- Ratio: 77.1% passed, 22.9% failed
-- After 3rd security call: 91/105 passed cumulatively, 14/105 failed
-- Ratio: 86.7% passed, 13.3% failed
+**Effective evaluated set = 102 runs**
 
-  Breakdown of the failed side:
+The table below reports only runs that reached at least one security-tool call.
 
-- 45 failed the 1st security call
-- 21 were still unresolved after the 2nd security call
-- 11 were still unresolved after the 3rd security call
-- Plus 3 runs failed before any security-tool call, so they remain in the failed count throughout
+#### Cumulative Security-Validation Results
 
-  Compact summary:
+| Iteration | Passed (Cumulative) | Failed (Security Only) | Pass Rate | Fail Rate |
+|---|---:|---:|---:|---:|
+| After 1st security call | 57 / 102 | 45 / 102 | 55.9% | 44.1% |
+| After 2nd security call | 81 / 102 | 21 / 102 | 79.4% | 20.6% |
+| After 3rd security call | 91 / 102 | 11 / 102 | 89.2% | 10.8% |
 
-- 54.3% passed by the 1st security call
-- 77.1% passed by the 2nd security call
-- 86.7% passed by the 3rd security call
+#### Failure Reduction Across Iterations
 
-• Using the effective evaluated set of 105 runs after removing the 16 zero-tool bypass cases:
+| Comparison | Failed Count Change | Fail Rate Change |
+|---|---:|---:|
+| 1st → 2nd security call | 45 → 21 | 44.1% → 20.6% |
+| 2nd → 3rd security call | 21 → 11 | 20.6% → 10.8% |
+| 1st → 3rd security call | 45 → 11 | 44.1% → 10.8% |
 
-- After 1st security call: 48/105 failed
-- Fail rate: 45.7%
-- After 2nd security call: 24/105 failed
-- Fail rate: 22.9%
-- After 3rd security call: 14/105 failed
-- Fail rate: 13.3%
+#### Compact Summary
 
-  Failure reduction over iterations:
+Using the effective evaluated set of **105 runs**, the agent passed **57 runs after the first security call**, **81 runs after the second security call**, and **91 runs after the third security call**. This corresponds to cumulative pass rates of **54.3%**, **77.1%**, and **86.7%**, respectively.
 
-- 1st to 2nd call: 48 -> 24
-- Fail rate drop: 45.7% -> 22.9%
-- 2nd to 3rd call: 24 -> 14
-- Fail rate drop: 22.9% -> 13.3%
-- Overall from 1st to 3rd call: 48 -> 14
-- Fail rate drop: 45.7% -> 13.3%
+The total failure count decreased from **48** after the first security call to **24** after the second and **14** after the third. These failure counts include **3 pre-tool failures** that never reached the security tool and therefore remain in the failed count throughout.
 
 ### Context Engineering
 
