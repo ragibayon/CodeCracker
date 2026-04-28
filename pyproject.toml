@@ -1,0 +1,18 @@
+[project]
+name = "codecracker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "black",
+    "langchain",
+    "langchain-openai",
+    "langchain-ollama",
+    "bandit",
+    "semgrep",
+    "pandas",
+    "python-dotenv",
+    "tqdm",
+    "python-dotenv",
+]
