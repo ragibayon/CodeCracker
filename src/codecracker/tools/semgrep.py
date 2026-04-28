@@ -12,6 +12,8 @@ from rich.panel import Panel
 
 console = Console()
 
+SEMGREP_TIMEOUT_SECONDS = 30
+
 
 # -----------------------------
 # Helpers
@@ -65,12 +67,17 @@ def run_semgrep_on_code(code: str) -> dict[str, Any]:
             "--json",
         ]
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=SEMGREP_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                f"Semgrep timed out after {SEMGREP_TIMEOUT_SECONDS} seconds."
+            ) from exc
 
         if not result.stdout.strip():
             raise RuntimeError(

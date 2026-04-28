@@ -79,6 +79,7 @@ def _extract_tool_results(raw_agent_output: dict[str, Any]) -> list[dict[str, An
                 "content": _parse_tool_message_content(
                     _message_attr(message, "content")
                 ),
+                "artifact": _message_attr(message, "artifact"),
             }
         )
 
@@ -113,7 +114,16 @@ def _build_run_record(
     logged_tool_results = []
     for tool_result in tool_results:
         content = tool_result.get("content")
-        if isinstance(content, dict) and "llm_context" in content:
+        artifact = tool_result.get("artifact")
+        if isinstance(artifact, dict) and "llm_context" in artifact:
+            logged_tool_results.append(
+                {
+                    **tool_result,
+                    "llm_context": artifact.get("llm_context"),
+                    "verbose_content": artifact.get("verbose"),
+                }
+            )
+        elif isinstance(content, dict) and "llm_context" in content:
             logged_tool_results.append(
                 {
                     **tool_result,

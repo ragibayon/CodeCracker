@@ -33,32 +33,37 @@ The main runtime settings live in [main.py](/Users/ragibayon/Code/CodeCracker/ma
 model = "gpt-oss:latest"
 temperature = 0.0
 seed = 42
+max_security_calls = 3
 dataset_path = Path("data/securityeval/dataset.jsonl")
-sample_index: int | None = 0
+sample_index: int | None = None
 ```
 
 Meaning:
 
-- `sample_index = 0`
-  - run one dataset sample
 - `sample_index = None`
   - run the full dataset
+- `sample_index = 0`
+  - run the first dataset sample
+- `max_security_calls = 3`
+  - cap the number of security-validation passes per run
 
 ## Run
 
-Single sample:
+Default run:
 
 ```bash
 uv run python main.py
 ```
 
-Full dataset:
+By default this runs the full dataset, because `sample_index` is `None`.
+
+To run a single sample:
 
 1. Open [main.py](/Users/ragibayon/Code/CodeCracker/main.py)
 2. Set:
 
 ```python
-sample_index: int | None = None
+sample_index: int | None = 0
 ```
 
 1. Run:
@@ -111,8 +116,8 @@ Each `run.json` includes:
 Tool results include:
 
 - exact args used for the tool call
-- compact LLM-facing summary
-- verbose tool content for later inspection
+- compact LLM-facing summary used by the model
+- verbose tool content for later inspection and auditing
 
 ## Motivating Example
 
@@ -695,6 +700,7 @@ The agent is instructed to validate code before returning a final answer. The cu
 3. `run_security_checks`
 
 `run_security_checks` is a combined tool that runs Bandit and Semgrep in parallel and returns merged security feedback to the model.
+The verbose per-tool reports stay in logs and are not sent back to the model.
 
 ### Why Merge Bandit and Semgrep
 

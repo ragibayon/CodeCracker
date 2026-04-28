@@ -37,10 +37,12 @@ def run_sample(
         **model_parameters,
         **sample_run_parameters,
     }
+
     print_run_start(model=model, prompt=prompt, parameters=header_parameters)
 
     run_dir = create_run_log_dir()
     loader = start_run_loader()
+
     try:
         try:
             result = agent.run_loop(
@@ -63,6 +65,7 @@ def run_sample(
             }
     finally:
         loader.stop()
+
     result["dataset"] = {
         "path": str(dataset_path),
         "ID": sample["ID"],
@@ -71,12 +74,14 @@ def run_sample(
     result["model_parameters"] = model_parameters
     result["run_parameters"] = sample_run_parameters
     result["log_dir"] = str(run_dir)
+
     write_run_log(
         run_dir,
         model=model,
         prompt=prompt,
         result=result,
     )
+
     if result["passed"]:
         print_run_result(result)
         return
@@ -89,13 +94,20 @@ def main() -> None:
 
     model = "gpt-oss:latest"
     temperature = 0.0
-    seed = 42
+    seed: int | None = 42
+    max_security_calls = 3
+    recursion_limit = 30
+
     dataset_path = Path("data/securityeval/dataset.jsonl")
     sample_index: int | None = None
+
     model_parameters = {
         "temperature": temperature,
         "seed": seed,
+        "max_security_calls": max_security_calls,
+        "recursion_limit": recursion_limit,
     }
+
     run_parameters = {
         "sample_index": sample_index,
         "dataset_path": str(dataset_path),
@@ -105,6 +117,8 @@ def main() -> None:
         model=model,
         temperature=temperature,
         seed=seed,
+        max_security_calls=max_security_calls,
+        recursion_limit=recursion_limit,
     )
 
     if sample_index is None:

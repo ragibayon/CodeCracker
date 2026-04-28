@@ -92,7 +92,11 @@ def _merge_feedback(
     return merged
 
 
-@tool("run_security_checks", args_schema=SecurityToolInput)
+@tool(
+    "run_security_checks",
+    args_schema=SecurityToolInput,
+    response_format="content_and_artifact",
+)
 def run_security_checks_tool(code: str) -> dict[str, Any]:
     """
     Run Bandit and Semgrep security analysis on generated Python code in parallel.
@@ -143,8 +147,7 @@ def run_security_checks_tool(code: str) -> dict[str, Any]:
         },
     }
 
-    return {
-        **llm_context,
+    artifact = {
         "llm_context": llm_context,
         "verbose": {
             "bandit": {
@@ -154,7 +157,10 @@ def run_security_checks_tool(code: str) -> dict[str, Any]:
             },
             "semgrep": {
                 "summary": semgrep_result["summary"],
+                "llm_context": semgrep_feedback,
                 "raw_report": semgrep_result["raw_report"],
             },
         },
     }
+
+    return llm_context, artifact
